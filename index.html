@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fear &amp; Greed Index — histórico diário (2019–2026)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#f4f6f8; --surface:#ffffff; --ink:#0e1a25; --muted:#586674; --line:#e0e5ea; --line-strong:#c6cfd8;
+  --xf:#c73a30; --f:#d97b20; --n:#7a8590; --g:#3b9761; --xg:#0d7743;
+  --accent:#0b5d8f;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0b1016; --surface:#131a22; --ink:#e8eef4; --muted:#95a2af; --line:#222c37; --line-strong:#334150;
+    --xf:#ff6b5d; --f:#f6a24e; --n:#a2acb7; --g:#57c286; --xg:#35d48b;
+    --accent:#5db4ec;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0b1016; --surface:#131a22; --ink:#e8eef4; --muted:#95a2af; --line:#222c37; --line-strong:#334150;
+  --xf:#ff6b5d; --f:#f6a24e; --n:#a2acb7; --g:#57c286; --xg:#35d48b;
+  --accent:#5db4ec;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1080px;margin:0 auto;padding:clamp(20px,4vw,48px) clamp(16px,4vw,32px) 72px}
+h1{font-size:clamp(28px,4.4vw,46px);line-height:1.05;margin:0 0 12px;font-weight:700;letter-spacing:-.025em}
+.sub{margin:0;color:var(--muted);max-width:64ch}
+
+.now{display:flex;flex-wrap:wrap;align-items:flex-end;gap:20px 56px;margin:36px 0 26px}
+.now-main{display:flex;align-items:baseline;gap:14px}
+.now-num{font-size:clamp(68px,11vw,112px);font-weight:700;line-height:.86;letter-spacing:-.045em;font-variant-numeric:tabular-nums}
+.now-label{font-size:clamp(20px,2.6vw,28px);font-weight:500}
+.now-when{width:100%;margin:0 0 -8px;font-size:14px;color:var(--muted)}
+.cmp{display:flex;flex-wrap:wrap;gap:16px 34px;margin:0;padding-bottom:4px}
+.cmp dt{font-size:13px;color:var(--muted)}
+.cmp dd{margin:2px 0 0;font-size:20px;font-weight:500;display:flex;align-items:center;gap:8px;font-variant-numeric:tabular-nums}
+.cmp dd small{font-size:13px;font-weight:400;color:var(--muted)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;flex:none}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px clamp(12px,2.2vw,22px) 12px}
+.bar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between}
+.seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:9px;overflow:hidden}
+.seg button{font:inherit;font-size:13px;font-weight:500;padding:7px 13px;border:0;background:transparent;color:var(--muted);cursor:pointer}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.tools{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.chk{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer;user-select:none}
+.chk input{accent-color:var(--accent);width:16px;height:16px;margin:0}
+.link{font:inherit;font-size:13px;color:var(--accent);background:none;border:0;padding:4px 2px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.link[hidden]{display:none}
+button:focus-visible,input:focus-visible,summary:focus-visible,canvas:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.readout{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;margin:18px 2px 0;min-height:30px;font-variant-numeric:tabular-nums}
+.readout .r-date{font-size:15px;color:var(--muted)}
+.readout .r-val{font-size:22px;font-weight:700;letter-spacing:-.01em}
+.readout .r-lab{font-size:15px;font-weight:500;display:inline-flex;align-items:center;gap:7px}
+
+.plot{position:relative;height:clamp(320px,50vw,480px);margin-top:6px}
+.plot canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:pan-y;cursor:crosshair;border-radius:8px}
+.tip{position:absolute;top:8px;pointer-events:none;background:var(--surface);color:var(--ink);border:1px solid var(--line-strong);border-radius:10px;padding:8px 12px;box-shadow:0 6px 24px rgba(0,0,0,.14);font-size:13px;white-space:nowrap;z-index:2;font-variant-numeric:tabular-nums}
+.tip[hidden]{display:none}
+.tip .t-d{color:var(--muted)}
+.tip .t-v{font-size:15px;font-weight:700;display:flex;align-items:center;gap:7px;margin-top:2px}
+.tip .t-s{color:var(--muted);margin-top:2px}
+.hint{display:none;font-size:12.5px;color:var(--muted);margin:8px 2px 2px}
+@media (hover:hover){.hint{display:block}}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:20px 32px;margin-top:30px;padding-top:26px;border-top:1px solid var(--line)}
+.stats h2,.dist h2{margin:0 0 4px;font-size:13px;font-weight:500;color:var(--muted)}
+.stat-v{font-size:28px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat-s{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.period{margin:26px 0 0;font-size:14px;color:var(--muted)}
+.dist{margin-top:22px}
+.dist-bar{display:flex;gap:2px;height:14px;border-radius:7px;overflow:hidden;margin-top:8px}
+.dist-bar span{display:block;min-width:2px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 22px;margin:12px 0 0;padding:0;list-style:none;font-size:13.5px;font-variant-numeric:tabular-nums}
+.legend li{display:flex;align-items:center;gap:8px}
+.legend b{font-weight:700}
+
+details.days{margin-top:30px;border-top:1px solid var(--line);padding-top:18px}
+details.days summary{cursor:pointer;font-weight:500;font-size:15px}
+.rows{margin-top:12px;max-height:380px;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.rows ul{list-style:none;margin:0;padding:0}
+.rows li{display:flex;align-items:center;gap:12px;padding:8px 14px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;font-size:14.5px}
+.rows li:last-child{border-bottom:0}
+.rows .d{color:var(--muted);min-width:92px}
+.rows .p{font-weight:700;min-width:96px}
+.rows .z{color:var(--muted);margin-left:auto;display:inline-flex;align-items:center;gap:7px}
+.rows-note{font-size:13px;color:var(--muted);margin:8px 2px 0}
+
+.notes{margin-top:34px;font-size:13px;color:var(--muted);max-width:80ch}
+.notes p{margin:0 0 8px}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <h1>Fear &amp; Greed Index</h1>
+    <p class="sub">Sentimento diário do mercado de ações dos EUA, numa escala de 0 (medo extremo) a 100 (ganância extrema), como calculado pela CNN. Histórico diário desde janeiro de 2019, atualizado a cada hora.</p>
+  </header>
+
+  <section class="now" aria-label="Leitura mais recente">
+    <p class="now-when" id="nowWhen"></p>
+    <div class="now-main"><span class="now-num" id="nowNum">–</span><span class="now-label" id="nowLabel"></span></div>
+    <dl class="cmp" id="cmp"></dl>
+  </section>
+
+  <section class="card" aria-label="Gráfico diário">
+    <div class="bar">
+      <div class="seg" id="seg" role="group" aria-label="Período exibido"></div>
+      <div class="tools">
+        <label class="chk"><input type="checkbox" id="ma"> Média de 7 dias</label>
+        <button type="button" class="link" id="reset" hidden>Voltar ao período</button>
+      </div>
+    </div>
+    <div class="readout" id="readout" aria-live="off"></div>
+    <div class="plot" id="plot">
+      <canvas id="cv" tabindex="0" role="img" aria-label="Gráfico de linha do Fear &amp; Greed Index"></canvas>
+      <div class="tip" id="tip" hidden></div>
+    </div>
+    <p class="hint">Passe o mouse para ver cada dia. Arraste para ampliar um trecho; clique duas vezes para voltar. Com o gráfico em foco, use as setas do teclado.</p>
+  </section>
+
+  <p class="period" id="period"></p>
+  <section class="stats" aria-label="Resumo do período exibido">
+    <div><h2>Mínimo</h2><div class="stat-v" id="sMin"></div><div class="stat-s" id="sMinD"></div></div>
+    <div><h2>Máximo</h2><div class="stat-v" id="sMax"></div><div class="stat-s" id="sMaxD"></div></div>
+    <div><h2>Média</h2><div class="stat-v" id="sAvg"></div><div class="stat-s" id="sAvgL"></div></div>
+    <div><h2>Dias com dados</h2><div class="stat-v" id="sN"></div><div class="stat-s">pregões no período</div></div>
+  </section>
+  <section class="dist" aria-label="Distribuição dos dias por zona">
+    <h2>Dias em cada zona</h2>
+    <div class="dist-bar" id="distBar"></div>
+    <ul class="legend" id="legend"></ul>
+  </section>
+
+  <details class="days" id="days">
+    <summary>Ver os pontos de cada dia</summary>
+    <div class="rows" id="rows" tabindex="0" aria-label="Lista diária de pontos, do mais recente ao mais antigo"></div>
+    <p class="rows-note" id="rowsNote"></p>
+  </details>
+
+  <footer class="notes">
+    <p><b>De onde vêm os dados.</b> Desde 01/03/2021, os valores vêm do mesmo endpoint que alimenta o gráfico da CNN (<a href="https://edition.cnn.com/markets/fear-and-greed" style="color:inherit">edition.cnn.com/markets/fear-and-greed</a>). De jan/2019 a fev/2021, vêm de arquivos públicos de terceiros que preservaram a série antiga; são valores inteiros e podem diferir um pouco do que a CNN mostra hoje. Nesse trecho, feriados repetem o valor do dia anterior.</p>
+    <p><b>Atualização.</b> Um robô (GitHub Actions) busca a leitura mais recente na CNN a cada hora e atualiza o arquivo <code>data/data.json</code> que esta página lê. O índice pertence à CNN; este site não é afiliado a ela e não é recomendação de investimento.</p>
+  </footer>
+</main>
+
+<script>
+(function(){
+'use strict';
+var D = [];
+var V = [];
+var NOW = {score:0, week:0, month:0, year:0};
+var N = 0, DAY = 86400000;
+var SEAM = Date.UTC(2021,2,1)/DAY;
+var DATA_UPDATED = null;
+
+var ZONES = [
+  {key:'xf', name:'Medo extremo',     lo:0,  hi:25},
+  {key:'f',  name:'Medo',             lo:25, hi:45},
+  {key:'n',  name:'Neutro',           lo:45, hi:55},
+  {key:'g',  name:'Ganância',         lo:55, hi:75},
+  {key:'xg', name:'Ganância extrema', lo:75, hi:100}
+];
+// Faixas oficiais da CNN sobre o valor inteiro: 0-24, 25-44, 45-55, 56-75, 76-100
+function zoneOfInt(r){ return r<25?0 : r<45?1 : r<=55?2 : r<=75?3 : 4; }
+function zoneOf(v){ return zoneOfInt(Math.round(v)); }
+
+var $ = function(s){ return document.querySelector(s); };
+var plot=$('#plot'), cv=$('#cv'), ctx=cv.getContext('2d'), tip=$('#tip'), readout=$('#readout');
+
+var MONTHS = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+function pad(n){ return (n<10?'0':'')+n; }
+function fmtDate(d){ var t=new Date(d*DAY); return pad(t.getUTCDate())+'/'+pad(t.getUTCMonth()+1)+'/'+t.getUTCFullYear(); }
+var WD = ['dom','seg','ter','qua','qui','sex','sáb'];
+function fmtLong(d){ var t=new Date(d*DAY); return WD[t.getUTCDay()]+', '+fmtDate(d); }
+function pts(v){ return Math.round(v)+' pontos'; }
+function css(n){ return getComputedStyle(document.documentElement).getPropertyValue('--'+n).trim(); }
+
+// Média móvel de 7 pregões (calculada em boot(), quando os dados chegam)
+var MA = [];
+
+function lowerBound(a,x){ var l=0,h=a.length; while(l<h){ var m=(l+h)>>1; if(a[m]<x) l=m+1; else h=m; } return l; }
+function upperBound(a,x){ var l=0,h=a.length; while(l<h){ var m=(l+h)>>1; if(a[m]<=x) l=m+1; else h=m; } return l; }
+
+var first=0, last=0;
+var view={a:first,b:last}, preset='all', smooth=false, hover=null, drag=null;
+var W=0,H=0,dpr=1;
+var M={l:22,r:44,t:14,b:30};
+
+var PRESETS=[
+  {id:'1m',label:'1M',days:30},{id:'3m',label:'3M',days:91},{id:'6m',label:'6M',days:182},
+  {id:'1a',label:'1A',days:365},{id:'2a',label:'2A',days:730},{id:'5a',label:'5A',days:1826},
+  {id:'all',label:'Tudo',days:null}
+];
+var seg=$('#seg');
+PRESETS.forEach(function(p){
+  var b=document.createElement('button'); b.type='button'; b.textContent=p.label; b.dataset.id=p.id;
+  b.setAttribute('aria-pressed','false');
+  b.addEventListener('click',function(){ applyPreset(p.id); });
+  seg.appendChild(b);
+});
+function applyPreset(id){
+  var p=PRESETS.filter(function(x){return x.id===id;})[0];
+  preset=id;
+  view={a:p.days?Math.max(first,last-p.days):first, b:last};
+  hover=null; hideTip(); sync();
+}
+function syncButtons(){
+  Array.prototype.forEach.call(seg.children,function(b){ b.setAttribute('aria-pressed', String(b.dataset.id===preset)); });
+  $('#reset').hidden = (preset!==null);
+}
+
+function plotW(){ return W-M.l-M.r; }
+function plotH(){ return H-M.t-M.b; }
+function xOf(d){ return M.l+(d-view.a)/(view.b-view.a)*plotW(); }
+function yOf(v){ return M.t+(1-v/100)*plotH(); }
+function dayAt(x){ return view.a+(x-M.l)/plotW()*(view.b-view.a); }
+
+function xTicks(){
+  var span=view.b-view.a, pw=plotW(), out=[];
+  var minGap = W<520?60:78, maxCount=Math.max(2,Math.floor(pw/minGap));
+  if(span<=75){
+    var steps=[1,2,7,14], step=14, i;
+    for(i=0;i<steps.length;i++){ if(span/steps[i]<=maxCount){ step=steps[i]; break; } }
+    for(var d=Math.ceil(view.a/step)*step; d<=view.b; d+=step){
+      var t=new Date(d*DAY); out.push({d:d,label:pad(t.getUTCDate())+'/'+pad(t.getUTCMonth()+1)});
+    }
+    return out;
+  }
+  var mSteps=[1,2,3,6,12,24,36,60], ms=60;
+  for(var j=0;j<mSteps.length;j++){ if(span/30.44/mSteps[j]<=maxCount){ ms=mSteps[j]; break; } }
+  var s=new Date(view.a*DAY), sy=s.getUTCFullYear(), sm=s.getUTCMonth();
+  var firstIdx=sy*12+sm;
+  if(Date.UTC(sy,sm,1)/DAY<view.a) firstIdx++;
+  if(ms<12){ firstIdx=Math.ceil(firstIdx/ms)*ms; }
+  else { var ys=ms/12, yy=Math.ceil(firstIdx/12); yy=Math.ceil(yy/ys)*ys; firstIdx=yy*12; }
+  for(var mi=firstIdx;;mi+=ms){
+    var yr=Math.floor(mi/12), mo=mi%12, dd=Date.UTC(yr,mo,1)/DAY;
+    if(dd>view.b) break;
+    out.push({d:dd,label: ms>=12 ? String(yr) : MONTHS[mo]+'/'+String(yr).slice(2)});
+  }
+  return out;
+}
+
+function resize(){
+  var r=plot.getBoundingClientRect();
+  dpr=window.devicePixelRatio||1; W=Math.max(260,r.width); H=r.height;
+  cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
+  draw();
+}
+
+function draw(){
+  if(!W) return;
+  var col={}; ZONES.forEach(function(z){ col[z.key]=css(z.key); });
+  var muted=css('muted'), lineC=css('line'), strong=css('line-strong'), surface=css('surface'), accent=css('accent'), ink=css('ink');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+  var pw=plotW(), ph=plotH();
+
+  // faixas de zona
+  ZONES.forEach(function(z){
+    var y1=yOf(z.hi), y2=yOf(z.lo);
+    ctx.globalAlpha=0.10; ctx.fillStyle=col[z.key]; ctx.fillRect(M.l,y1,pw,y2-y1);
+  });
+  ctx.globalAlpha=1;
+
+  // grade horizontal
+  ctx.strokeStyle=strong; ctx.lineWidth=1; ctx.setLineDash([2,5]);
+  [25,50,75].forEach(function(v){ var y=Math.round(yOf(v))+.5; ctx.beginPath(); ctx.moveTo(M.l,y); ctx.lineTo(M.l+pw,y); ctx.stroke(); });
+  ctx.setLineDash([]);
+  ctx.beginPath(); var y0=Math.round(yOf(0))+.5; ctx.moveTo(M.l,y0); ctx.lineTo(M.l+pw,y0); ctx.stroke();
+
+  // eixo Y (direita)
+  ctx.font='12px "Schibsted Grotesk",system-ui,sans-serif'; ctx.fillStyle=muted; ctx.textAlign='left'; ctx.textBaseline='middle';
+  [0,25,50,75,100].forEach(function(v){ ctx.fillText(String(v), M.l+pw+9, yOf(v)); });
+
+  // nomes das zonas
+  if(W>=520){
+    ctx.font='11px "Schibsted Grotesk",system-ui,sans-serif'; ctx.textBaseline='top'; ctx.fillStyle=muted; ctx.globalAlpha=.9;
+    ZONES.forEach(function(z){ ctx.fillText(z.name, M.l+8, yOf(z.hi)+5); });
+    ctx.globalAlpha=1;
+  }
+
+  // eixo X
+  ctx.font='12px "Schibsted Grotesk",system-ui,sans-serif'; ctx.textBaseline='top'; ctx.textAlign='center';
+  xTicks().forEach(function(t){
+    var x=Math.round(xOf(t.d))+.5;
+    ctx.strokeStyle=lineC; ctx.beginPath(); ctx.moveTo(x,M.t); ctx.lineTo(x,M.t+ph); ctx.stroke();
+    var tw=ctx.measureText(t.label).width/2;
+    var tx=Math.min(Math.max(x,M.l+tw),M.l+pw+M.r-tw);
+    ctx.fillStyle=muted; ctx.fillText(t.label,tx,M.t+ph+9);
+  });
+
+  // linha colorida por zona
+  var lo=lowerBound(D,view.a), hi=upperBound(D,view.b)-1;
+  if(hi>=lo){
+    var g=ctx.createLinearGradient(0,yOf(100),0,yOf(0)), e=0.012;
+    g.addColorStop(0,col.xg);
+    [[75,'xg','g'],[55,'g','n'],[45,'n','f'],[25,'f','xf']].forEach(function(b){
+      var p=(100-b[0])/100; g.addColorStop(p-e,col[b[1]]); g.addColorStop(p+e,col[b[2]]);
+    });
+    g.addColorStop(1,col.xf);
+    ctx.save(); ctx.beginPath(); ctx.rect(M.l-1,M.t-2,pw+2,ph+4); ctx.clip();
+    ctx.lineJoin='round'; ctx.lineCap='round'; ctx.strokeStyle=g;
+    var n=hi-lo;
+    if(smooth){
+      ctx.globalAlpha=.28; ctx.lineWidth=1;
+      ctx.beginPath(); for(var i=lo;i<=hi;i++){ var x=xOf(D[i]), y=yOf(V[i]); if(i===lo) ctx.moveTo(x,y); else ctx.lineTo(x,y); } ctx.stroke();
+      ctx.globalAlpha=1;
+    }
+    var S=smooth?MA:V;
+    ctx.lineWidth = smooth?2.2 : n>700?1.4 : n>200?1.7 : 2.1;
+    ctx.beginPath(); for(var k=lo;k<=hi;k++){ var xx=xOf(D[k]), yy=yOf(S[k]); if(k===lo) ctx.moveTo(xx,yy); else ctx.lineTo(xx,yy); } ctx.stroke();
+    ctx.restore();
+  }
+
+  // marca de troca de fonte dos dados
+  if(SEAM>view.a && SEAM<view.b && W>=520){
+    var sx=Math.round(xOf(SEAM))+.5;
+    ctx.strokeStyle=muted; ctx.globalAlpha=.55; ctx.setLineDash([3,4]);
+    ctx.beginPath(); ctx.moveTo(sx,M.t); ctx.lineTo(sx,M.t+ph); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1;
+    var lab='dados direto da CNN', f='11px "Schibsted Grotesk",system-ui,sans-serif'; ctx.font=f;
+    var lw=ctx.measureText(lab).width;
+    ctx.textAlign='left'; ctx.textBaseline='bottom';
+    ctx.fillStyle=surface; ctx.globalAlpha=.9; ctx.fillRect(sx+4,M.t+ph-22,lw+10,18); ctx.globalAlpha=1;
+    ctx.fillStyle=muted; ctx.fillText(lab,sx+9,M.t+ph-7);
+  }
+
+  // seleção de zoom
+  if(drag && drag.moved){
+    var xa=Math.min(drag.x0,drag.x1), xb=Math.max(drag.x0,drag.x1);
+    ctx.globalAlpha=.14; ctx.fillStyle=accent; ctx.fillRect(xa,M.t,xb-xa,ph);
+    ctx.globalAlpha=.8; ctx.strokeStyle=accent; ctx.lineWidth=1; ctx.strokeRect(xa+.5,M.t+.5,xb-xa,ph-1);
+    ctx.globalAlpha=1;
+  }
+
+  // marcador do dia sob o cursor
+  if(hover!==null && D[hover]>=view.a && D[hover]<=view.b){
+    var hx=xOf(D[hover]), hy=yOf(V[hover]);
+    ctx.strokeStyle=ink; ctx.globalAlpha=.4; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(Math.round(hx)+.5,M.t); ctx.lineTo(Math.round(hx)+.5,M.t+ph); ctx.stroke();
+    ctx.setLineDash([]); ctx.globalAlpha=1;
+    ctx.beginPath(); ctx.arc(hx,hy,5,0,Math.PI*2); ctx.fillStyle=col[ZONES[zoneOf(V[hover])].key]; ctx.fill();
+    ctx.lineWidth=2; ctx.strokeStyle=surface; ctx.stroke();
+  }
+}
+
+function dotHTML(z){ return '<i class="dot" style="background:var(--'+ZONES[z].key+')"></i>'; }
+
+function showReadout(i){
+  var z=zoneOf(V[i]);
+  var extra = smooth ? ' <span class="r-date">(média 7 dias: '+Math.round(MA[i])+')</span>' : '';
+  readout.innerHTML='<span class="r-date">'+fmtLong(D[i])+'</span><span class="r-val">'+pts(V[i])+'</span><span class="r-lab">'+dotHTML(z)+ZONES[z].name+'</span>'+extra;
+}
+function showTip(i){
+  var z=zoneOf(V[i]);
+  tip.innerHTML='<div class="t-d">'+fmtLong(D[i])+'</div><div class="t-v">'+dotHTML(z)+pts(V[i])+'</div><div class="t-s">'+ZONES[z].name+(smooth?' · média 7d: '+Math.round(MA[i]):'')+'</div>';
+  tip.hidden=false;
+  var x=xOf(D[i]), tw=tip.offsetWidth, left=x+14;
+  if(left+tw>W-4) left=x-14-tw;
+  tip.style.left=Math.max(4,left)+'px';
+}
+function hideTip(){ tip.hidden=true; }
+function defaultReadout(){ var hi=upperBound(D,view.b)-1; if(hi>=0) showReadout(hi); }
+
+function nearestIdx(px){
+  var d=dayAt(px), lo=lowerBound(D,view.a), hi=upperBound(D,view.b)-1;
+  if(hi<lo) return null;
+  var i=lowerBound(D,d); if(i>hi) i=hi; if(i<lo) i=lo;
+  if(i>lo && Math.abs(D[i-1]-d)<=Math.abs(D[i]-d)) i--;
+  return i;
+}
+
+function localX(ev){ var r=cv.getBoundingClientRect(); return ev.clientX-r.left; }
+
+cv.addEventListener('pointermove',function(ev){
+  var x=localX(ev);
+  if(drag){ drag.x1=Math.min(Math.max(x,M.l),M.l+plotW()); if(Math.abs(drag.x1-drag.x0)>6) drag.moved=true; }
+  hover=nearestIdx(x);
+  if(hover!==null){ showReadout(hover); showTip(hover); }
+  draw();
+});
+cv.addEventListener('pointerleave',function(ev){
+  if(drag) return;
+  if(ev.pointerType==='touch') return;
+  hover=null; hideTip(); defaultReadout(); draw();
+});
+cv.addEventListener('pointerdown',function(ev){
+  var x=localX(ev);
+  if(ev.pointerType==='mouse' && ev.button===0){
+    drag={x0:Math.min(Math.max(x,M.l),M.l+plotW()),x1:x,moved:false};
+    try{ cv.setPointerCapture(ev.pointerId); }catch(e){}
+  }
+  hover=nearestIdx(x); if(hover!==null){ showReadout(hover); showTip(hover); } draw();
+});
+cv.addEventListener('pointerup',function(ev){
+  if(drag){
+    var d=drag; drag=null;
+    if(d.moved){
+      var a=dayAt(Math.min(d.x0,d.x1)), b=dayAt(Math.max(d.x0,d.x1));
+      var ia=lowerBound(D,a), ib=upperBound(D,b)-1;
+      if(ib-ia>=4){ view={a:D[ia],b:D[ib]}; preset=null; hover=null; hideTip(); sync(); return; }
+    }
+    draw();
+  }
+  if(ev.pointerType==='touch'){ setTimeout(function(){ hover=null; hideTip(); defaultReadout(); draw(); },2200); }
+});
+cv.addEventListener('pointercancel',function(){ drag=null; draw(); });
+cv.addEventListener('dblclick',function(){ applyPreset(lastPreset||'all'); });
+cv.addEventListener('keydown',function(ev){
+  var lo=lowerBound(D,view.a), hi=upperBound(D,view.b)-1;
+  if(hi<lo) return;
+  var step=ev.shiftKey?10:1, i=hover===null?hi:hover;
+  if(ev.key==='ArrowLeft') i=Math.max(lo,i-step);
+  else if(ev.key==='ArrowRight') i=Math.min(hi,i+step);
+  else if(ev.key==='Home') i=lo;
+  else if(ev.key==='End') i=hi;
+  else if(ev.key==='Escape'){ hover=null; hideTip(); defaultReadout(); draw(); return; }
+  else return;
+  ev.preventDefault(); hover=i; showReadout(i); showTip(i); draw();
+});
+
+var lastPreset='all';
+$('#reset').addEventListener('click',function(){ applyPreset(lastPreset||'all'); });
+$('#ma').addEventListener('change',function(e){ smooth=e.target.checked; if(hover!==null){ showReadout(hover); showTip(hover);} else defaultReadout(); draw(); });
+
+function updateStats(){
+  var lo=lowerBound(D,view.a), hi=upperBound(D,view.b)-1;
+  if(hi<lo) return;
+  var mn=Infinity,mx=-Infinity,sum=0,imn=lo,imx=lo,cnt=[0,0,0,0,0];
+  for(var i=lo;i<=hi;i++){
+    var v=V[i]; if(v<mn){mn=v;imn=i;} if(v>mx){mx=v;imx=i;} sum+=v; cnt[zoneOf(v)]++;
+  }
+  var n=hi-lo+1, avg=sum/n;
+  $('#sMin').textContent=Math.round(mn)+' pontos'; $('#sMinD').textContent='em '+fmtDate(D[imn]);
+  $('#sMax').textContent=Math.round(mx)+' pontos'; $('#sMaxD').textContent='em '+fmtDate(D[imx]);
+  $('#sAvg').textContent=Math.round(avg)+' pontos'; $('#sAvgL').textContent=ZONES[zoneOfInt(Math.round(avg))].name;
+  $('#sN').textContent=n.toLocaleString('pt-BR');
+  $('#period').textContent='Período exibido: '+fmtDate(D[lo])+' a '+fmtDate(D[hi]);
+  var bar=$('#distBar'), leg=$('#legend'); bar.innerHTML=''; leg.innerHTML='';
+  for(var z=ZONES.length-1;z>=0;z--){
+    var pct=cnt[z]/n*100;
+    var s=document.createElement('span'); s.style.flex=String(Math.max(cnt[z],0))+' 1 0'; s.style.background='var(--'+ZONES[z].key+')';
+    s.title=ZONES[z].name+': '+cnt[z]+' dias'; if(cnt[z]===0) s.style.display='none'; bar.appendChild(s);
+  }
+  for(var q=ZONES.length-1;q>=0;q--){
+    var li=document.createElement('li'); li.innerHTML=dotHTML(q)+'<span>'+ZONES[q].name+' <b>'+(cnt[q]/n*100).toFixed(0)+'%</b></span>';
+    leg.appendChild(li);
+  }
+  cv.setAttribute('aria-label','Gráfico de linha do Fear & Greed Index de '+fmtDate(D[lo])+' a '+fmtDate(D[hi])+'. Mínimo '+Math.round(mn)+', máximo '+Math.round(mx)+', média '+Math.round(avg)+'.');
+}
+
+var rowsDirty=true;
+function renderRows(){
+  var lo=lowerBound(D,view.a), hi=upperBound(D,view.b)-1;
+  var box=$('#rows'), html='<ul>', shown=0, LIMIT=2000;
+  for(var i=hi;i>=lo && shown<LIMIT;i--,shown++){
+    var z=zoneOf(V[i]);
+    html+='<li><span class="d">'+fmtDate(D[i])+'</span><span class="p">'+pts(V[i])+'</span><span class="z">'+dotHTML(z)+ZONES[z].name+'</span></li>';
+  }
+  box.innerHTML=html+'</ul>'; box.scrollTop=0;
+  $('#rowsNote').textContent=(hi-lo+1).toLocaleString('pt-BR')+' dias, do mais recente ao mais antigo, no período exibido.';
+  rowsDirty=false;
+}
+$('#days').addEventListener('toggle',function(e){ if(e.target.open && rowsDirty) renderRows(); });
+
+function sync(){
+  if(preset!==null) lastPreset=preset;
+  syncButtons(); updateStats(); defaultReadout(); rowsDirty=true;
+  if($('#days').open) renderRows();
+  draw();
+}
+
+function ratingWord(v){ return ZONES[zoneOfInt(Math.round(v))].name; }
+function initNow(){
+  var score = (NOW.score!=null) ? NOW.score : V[N-1];
+  var col=ZONES[zoneOfInt(Math.round(score))].key;
+  $('#nowNum').textContent=Math.round(score); $('#nowNum').style.color='var(--'+col+')';
+  $('#nowLabel').textContent=ratingWord(score);
+  var when='Última leitura: '+fmtDate(last)+' (pontos de 0 a 100)';
+  var upd=fmtUpdated(DATA_UPDATED);
+  if(upd) when+=' · dados atualizados em '+upd;
+  $('#nowWhen').textContent=when;
+  var items=[['1 semana atrás',NOW.week],['1 mês atrás',NOW.month],['1 ano atrás',NOW.year]], h='';
+  items.forEach(function(it){
+    if(it[1]==null) return;
+    var z=zoneOfInt(Math.round(it[1]));
+    h+='<div><dt>'+it[0]+'</dt><dd>'+dotHTML(z)+Math.round(it[1])+' <small>'+ZONES[z].name+'</small></dd></div>';
+  });
+  $('#cmp').innerHTML=h;
+}
+
+function fmtUpdated(iso){
+  if(!iso) return '';
+  var t=new Date(iso);
+  if(isNaN(t)) return '';
+  var dd=pad(t.getUTCDate())+'/'+pad(t.getUTCMonth()+1)+'/'+t.getUTCFullYear();
+  var hh=pad(t.getUTCHours())+':'+pad(t.getUTCMinutes())+' UTC';
+  return dd+' às '+hh;
+}
+
+function boot(store){
+  D = store.D||[]; V = store.V||[]; N = D.length;
+  if(!N){ showLoadError('Sem dados na resposta.'); return; }
+  NOW = store.now||{}; DATA_UPDATED = store.updated||null;
+  first = D[0]; last = D[N-1];
+  MA = new Array(N);
+  for(var i=0;i<N;i++){ var s=0,c=0; for(var k=Math.max(0,i-6);k<=i;k++){ s+=V[k]; c++; } MA[i]=s/c; }
+  initNow();
+  window.addEventListener('resize',resize);
+  if(window.ResizeObserver) new ResizeObserver(resize).observe(plot);
+  if(window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw);
+  new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(draw);
+  resize();
+  applyPreset('all');
+}
+
+function showLoadError(msg){
+  $('#nowWhen').textContent='Não consegui carregar os dados agora.';
+  $('#nowNum').textContent='–';
+  readout.textContent=msg||'Tente recarregar a página em instantes.';
+}
+
+fetch('data/data.json',{cache:'no-store'})
+  .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+  .then(boot)
+  .catch(function(err){ showLoadError(String(err&&err.message||err)); });
+})();
+</script>
+</body>
+</html>
