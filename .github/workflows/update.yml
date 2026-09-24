@@ -1,0 +1,43 @@
+name: Atualizar Fear & Greed Index
+
+on:
+  schedule:
+    # Todo dia, no minuto 5 de cada hora (UTC). O minuto 5, em vez do
+    # 0 redondo, evita a fila de picos que atrasa jobs agendados para
+    # o exato início da hora em todo o GitHub.
+    - cron: "5 * * * *"
+  workflow_dispatch: {}   # permite rodar manualmente pela aba Actions
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar o repositório
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Buscar dados novos na CNN
+        run: python scripts/update_data.py
+
+      - name: Publicar se algo mudou
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/data.json
+          if git diff --cached --quiet; then
+            echo "Sem mudanças."
+          else
+            git commit -m "Atualiza Fear & Greed Index"
+            git push
+          fi
