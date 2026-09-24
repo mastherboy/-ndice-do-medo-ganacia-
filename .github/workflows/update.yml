@@ -4,7 +4,7 @@ on:
   schedule:
     # Todo dia, no minuto 5 de cada hora (UTC). O minuto 5, em vez do
     # 0 redondo, evita a fila de picos que atrasa jobs agendados para
-    # o exato início da hora em todo o GitHub.
+    # o exato início da hora em todo o GitHub..
     - cron: "5 * * * *"
   workflow_dispatch: {}   # permite rodar manualmente pela aba Actions
 
