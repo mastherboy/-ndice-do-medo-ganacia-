@@ -61,6 +61,20 @@ h1{font-size:clamp(28px,4.4vw,46px);line-height:1.05;margin:0 0 12px;font-weight
 .chk input{accent-color:var(--accent);width:16px;height:16px;margin:0}
 .link{font:inherit;font-size:13px;color:var(--accent);background:none;border:0;padding:4px 2px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 .link[hidden]{display:none}
+
+.datefilter{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.datefilter label{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.datefilter input[type="date"]{
+  font:inherit;font-size:13.5px;color:var(--ink);background:var(--surface);
+  border:1px solid var(--line-strong);border-radius:8px;padding:6px 8px;
+  font-variant-numeric:tabular-nums;color-scheme:light dark;
+}
+.datefilter .to{color:var(--muted);font-size:13px}
+.btn{font:inherit;font-size:13px;font-weight:500;padding:7px 14px;border-radius:8px;border:1px solid transparent;cursor:pointer}
+.btn-primary{background:var(--ink);color:var(--surface)}
+.btn-ghost{background:transparent;color:var(--muted);border-color:var(--line-strong)}
+.datefilter .err{font-size:12.5px;color:var(--xf);flex-basis:100%}
+.datefilter .err:empty{display:none}
 button:focus-visible,input:focus-visible,summary:focus-visible,canvas:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 .readout{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;margin:18px 2px 0;min-height:30px;font-variant-numeric:tabular-nums}
@@ -125,6 +139,14 @@ details.days summary{cursor:pointer;font-weight:500;font-size:15px}
         <label class="chk"><input type="checkbox" id="ma"> Média de 7 dias</label>
         <button type="button" class="link" id="reset" hidden>Voltar ao período</button>
       </div>
+    </div>
+    <div class="datefilter" role="group" aria-label="Filtrar por período específico">
+      <label>De <input type="date" id="dFrom" aria-label="Data inicial"></label>
+      <span class="to">até</span>
+      <label>Até <input type="date" id="dTo" aria-label="Data final"></label>
+      <button type="button" class="btn btn-primary" id="dApply">Filtrar</button>
+      <button type="button" class="btn btn-ghost" id="dClear">Limpar filtro</button>
+      <span class="err" id="dErr"></span>
     </div>
     <div class="readout" id="readout" aria-live="off"></div>
     <div class="plot" id="plot">
@@ -439,6 +461,25 @@ var lastPreset='all';
 $('#reset').addEventListener('click',function(){ applyPreset(lastPreset||'all'); });
 $('#ma').addEventListener('change',function(e){ smooth=e.target.checked; if(hover!==null){ showReadout(hover); showTip(hover);} else defaultReadout(); draw(); });
 
+var dFrom=$('#dFrom'), dTo=$('#dTo'), dErr=$('#dErr');
+function isoOfDay(d){ var t=new Date(d*DAY); return t.getUTCFullYear()+'-'+pad(t.getUTCMonth()+1)+'-'+pad(t.getUTCDate()); }
+function dayOfIso(s){
+  var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s||''); if(!m) return null;
+  return Math.round(Date.UTC(+m[1],+m[2]-1,+m[3])/DAY);
+}
+function applyDateFilter(){
+  dErr.textContent='';
+  var a=dayOfIso(dFrom.value), b=dayOfIso(dTo.value);
+  if(a==null || b==null){ dErr.textContent='Preencha as duas datas.'; return; }
+  if(a>b){ var t=a; a=b; b=t; }
+  if(b<first || a>last){ dErr.textContent='Fora do período com dados ('+fmtDate(first)+' a '+fmtDate(last)+').'; return; }
+  a=Math.max(a,first); b=Math.min(b,last);
+  view={a:a,b:b}; preset=null; hover=null; hideTip(); sync();
+}
+$('#dApply').addEventListener('click',applyDateFilter);
+$('#dClear').addEventListener('click',function(){ dErr.textContent=''; applyPreset(lastPreset||'all'); });
+[dFrom,dTo].forEach(function(inp){ inp.addEventListener('keydown',function(e){ if(e.key==='Enter') applyDateFilter(); }); });
+
 function updateStats(){
   var lo=lowerBound(D,view.a), hi=upperBound(D,view.b)-1;
   if(hi<lo) return;
@@ -483,6 +524,7 @@ function sync(){
   if(preset!==null) lastPreset=preset;
   syncButtons(); updateStats(); defaultReadout(); rowsDirty=true;
   if($('#days').open) renderRows();
+  dFrom.value=isoOfDay(view.a); dTo.value=isoOfDay(view.b);
   draw();
 }
 
@@ -519,6 +561,7 @@ function boot(store){
   if(!N){ showLoadError('Sem dados na resposta.'); return; }
   NOW = store.now||{}; DATA_UPDATED = store.updated||null;
   first = D[0]; last = D[N-1];
+  dFrom.min=dTo.min=isoOfDay(first); dFrom.max=dTo.max=isoOfDay(last);
   MA = new Array(N);
   for(var i=0;i<N;i++){ var s=0,c=0; for(var k=Math.max(0,i-6);k<=i;k++){ s+=V[k]; c++; } MA[i]=s/c; }
   initNow();
